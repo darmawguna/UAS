@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  express-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: express_app_container
+    ports:
+      - "3000:3000"
+    environment:
+      MYSQL_HOST: mysql-container
+      MYSQL_PORT: 3306
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: mydatabase
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    external: true

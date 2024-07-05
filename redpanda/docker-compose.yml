@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  redpanda:
+    image: vectorized/redpanda:latest
+    container_name: redpanda_container
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --node-id 0
+      - --check=false
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    ports:
+      - "9092:9092"
+    networks:
+      - redpanda_network
+
+  
+
+volumes:
+  redpanda_data:
+
+networks:
+  redpanda_network:
