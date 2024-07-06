@@ -1,0 +1,18 @@
+version: '3.9'
+
+services:
+  log-service:
+    build: .
+    container_name: log_service_container
+    environment:
+      - KAFKA_BROKER=redpanda:9092
+      - KAFKA_CLIENT_ID=log-service
+      - KAFKA_LOG_TOPIC=logs
+      - SUPABASE_URL=your_supabase_url
+      - SUPABASE_KEY=your_supabase_key
+    networks:
+      - log_network
+
+networks:
+  log_network:
+    external: true

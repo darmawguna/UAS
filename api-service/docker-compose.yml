@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   express-app:
@@ -9,14 +9,24 @@ services:
     ports:
       - "3000:3000"
     environment:
-      MYSQL_HOST: mysql-container
+      MYSQL_HOST: mysql
       MYSQL_PORT: 3306
       MYSQL_USER: user
       MYSQL_PASSWORD: password
       MYSQL_DATABASE: mydatabase
+      KAFKA_BROKER: redpanda:9092  
+      KAFKA_CLIENT_ID: api-service
+      KAFKA_TOPIC: items
+      KAFKA_LOG_TOPIC: logs
     networks:
       - mynetwork
+      - external_network
+      - redpanda_network
 
 networks:
   mynetwork:
+    external: true
+  external_network:
+    external: true
+  redpanda_network:
     external: true

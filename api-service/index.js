@@ -19,7 +19,7 @@ const pool = mysql.createPool({
 // Kafka connection
 const kafkaBroker = process.env.KAFKA_BROKER || "redpanda:9092";
 const kafkaClientId = process.env.KAFKA_CLIENT_ID || "api-service";
-const kafkaTopic = process.env.KAFKA_TOPIC || "items";
+const kafkaTopic = process.env.KAFKA_TOPIC || "KAFKAUAS";
 const kafkaLogTopic = process.env.KAFKA_LOG_TOPIC || "logs";
 
 // Initialize Kafka producer
@@ -46,6 +46,7 @@ app.get("/items", (req, res) => {
       res.status(500).send("Error fetching items");
       return;
     }
+    console.log("Items fetched:", results);
     res.json(results);
   });
 });
@@ -57,6 +58,8 @@ app.post("/add-item", async (req, res) => {
     const [result] = await pool.query("INSERT INTO items (name, description) VALUES (?, ?)", [name, description]);
     const newItem = { id: result.insertId, name, description };
 
+    console.log("Item added to database:", newItem);
+
     await producer.send({
       topic: KAFKAUAS,
       messages: [
@@ -71,24 +74,34 @@ app.post("/add-item", async (req, res) => {
         },
       ],
     });
+
+    console.log("Message sent to Kafka topic:", kafkaTopic, newItem);
+
     res.status(201).json(newItem);
   } catch (error) {
     console.error("Error adding item:", error);
+
+    const errorMessage = JSON.stringify({
+      topic: KAFKAUAS,
+      message: JSON.stringify({ name, description }),
+      sender: kafkaClientId,
+      status: false,
+      created_at: new Date().toISOString(),
+      error: error.message,
+    });
+
     // Send error log message to Kafka
     await producer.send({
-      topic: KAFKAUAS,
+      topic: kafkaLogTopic,
       messages: [
         {
-          value: JSON.stringify({
-            topic: KAFKAUAS,
-            message: JSON.stringify(newItem),
-            sender: kafkaClientId,
-            status: true,
-            created_at: new Date().toISOString(),
-          }),
+          value: errorMessage,
         },
       ],
     });
+
+    console.log("Error log sent to Kafka topic:", kafkaLogTopic, errorMessage);
+
     res.status(500).json({ error: "Error adding item" });
   }
 });

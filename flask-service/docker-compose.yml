@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  flask-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flask_app_container
+    ports:
+      - "3300:3300"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: mydatabase
+      KAFKA_BROKER: redpanda:9092  
+      KAFKA_CLIENT_ID: flask-client-id
+      KAFKA_TOPIC: KAFKAUAS
+      KAFKA_LOG_TOPIC: logs
+    networks:
+      - mynetwork
+      - external_network
+      - redpanda_network
+
+networks:
+  mynetwork:
+    external: true
+  external_network:
+    external: true
+  redpanda_network:
+    external: true
